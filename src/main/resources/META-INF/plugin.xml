@@ -1,0 +1,36 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.aiops.CloudAlert</id>
+    <version>0.0.1</version>
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>CloudAlert</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="support@aiops.com" url="https://www.aiops.com">睿象云</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+        CloudAlert is a plugin for IDEs such as Eclipse or IntelliJ IDEA. Help developers more efficiently handle the claim, processing and closing of alarms.<br/>
+        How to use plugin:<br/>
+        Fill in your email and key in the settings, and the list will refresh your alarms, and then you can handle them.<br/>
+        <a href="https://www.aiops.com">Our website</a>
+    ]]></description>
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Cloud Alert" secondary="true" icon="/icon/10.svg" anchor="bottom"
+                    factoryClass="com.aiops.cloudalert.ui.AiopsToolWindowFactory"/>
+        <applicationConfigurable parentId="tools" instance="com.aiops.cloudalert.settings.AppSettingsConfigurable"
+                                 id="org.intellij.sdk.settings.AppSettingsConfigurable"
+                                 displayName="Cloud Alert"/>
+        <applicationService serviceImplementation="com.aiops.cloudalert.settings.AppSettingsState"/>
+    </extensions>
+</idea-plugin>
