@@ -8,6 +8,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dtflys.forest.Forest;
+import com.dtflys.forest.exceptions.ForestNetworkException;
+import com.intellij.notification.*;
 import com.intellij.openapi.wm.ToolWindow;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -21,6 +23,11 @@ import java.util.Map;
 
 public class MainWindow {
     private static final Log log = LogFactory.getLog(MainWindow.class);
+    // 获取通知组管理器
+    private NotificationGroupManager manager = NotificationGroupManager.getInstance();
+
+    // 获取注册的通知组
+    private NotificationGroup balloon = manager.getNotificationGroup("com.aiops.notification.balloon");
     private JPanel mainPanel;
     private JTable table;
     private JButton refresh;
@@ -67,20 +74,28 @@ public class MainWindow {
                 }
                 String result = myClient.getAlerts(username, password, 20, 1, params);
                 JSONObject jsonObject = JSON.parseObject(result);
-                String pageText = jsonObject.getString("totalCount") + "条告警";
-                pageLabel.setText(pageText);
-                JSONArray alerts = jsonObject.getJSONObject("data").getJSONArray("records");
-                // 添加
-                for (int i = 0; i < alerts.size(); i++) {
-                    JSONObject a = alerts.getJSONObject(i);
-                    defaultTableModel.addRow(new Object[]{a.getString("id"), a.getString("alarmName"), a.getString("alarmContent"), getDate(a.getLong("createTime")), getPriorityStr(a.getString("priority")), a.getString("status"),a});
+                if(jsonObject.getInteger("code")==200) {
+                    String pageText = jsonObject.getString("totalCount") + "条告警";
+                    pageLabel.setText(pageText);
+                    JSONArray alerts = jsonObject.getJSONObject("data").getJSONArray("records");
+                    // 添加
+                    for (int i = 0; i < alerts.size(); i++) {
+                        JSONObject a = alerts.getJSONObject(i);
+                        defaultTableModel.addRow(new Object[]{a.getString("id"), a.getString("alarmName"), a.getString("alarmContent"), getDate(a.getLong("createTime")), getPriorityStr(a.getString("priority")), a.getString("status"), a});
+                    }
+                    table.setModel(defaultTableModel);
+                    table.getColumnModel().getColumn(6).setCellEditor(new PanelButtonEditor(refresh));
+                    table.getColumnModel().getColumn(6).setCellRenderer(new PanelButtonRenderer());
                 }
-                table.setModel(defaultTableModel);
-                table.getColumnModel().getColumn(6).setCellEditor(new PanelButtonEditor(refresh));
-                table.getColumnModel().getColumn(6).setCellRenderer(new PanelButtonRenderer());
+            } catch (ForestNetworkException e1){
+                Notification notification = balloon.createNotification("apiKey检查不通过,请前往Settins->Tools->Cloud Alert配置！", NotificationType.WARNING);
+                Notifications.Bus.notify(notification);
             } catch (Exception e) {
                 log.error("window error:", e);
             }
+        }else {
+            Notification notification = balloon.createNotification("未配置邮箱和apiKEY,请前往Settins->Tools->Cloud Alert配置！", NotificationType.WARNING);
+            Notifications.Bus.notify(notification);
         }
     }
 

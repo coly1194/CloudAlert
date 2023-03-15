@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.aiops"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -46,7 +46,8 @@ tasks {
     }
 
     publishPlugin {
-        token.set(System.getenv("perm:6auYX+S4gOWugQ==.OTItNzU1Mw==.2TXOjdtuHHPavJyf3nL02CiwdB6m5j"))
+        token.set(System.getenv("PUBLISH_TOKEN"))
+        channels.set(listOf("stable"))
     }
 }
 

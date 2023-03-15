@@ -1,12 +1,12 @@
 package com.aiops.cloudalert.module;
 
 import com.aiops.cloudalert.settings.AppSettingsState;
+import com.aiops.cloudalert.ui.CloseDialog;
 import com.aiops.cloudalert.util.HttpClient;
 import com.alibaba.fastjson.JSONObject;
 import com.dtflys.forest.Forest;
 import com.intellij.notification.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +14,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class PanelButtonEditor extends DefaultCellEditor {
-    private static final Log log = LogFactory.getLog(PanelButtonEditor.class);
+    // 获取通知组管理器
+    private NotificationGroupManager manager = NotificationGroupManager.getInstance();
+
+    // 获取注册的通知组
+    private NotificationGroup balloon = manager.getNotificationGroup("com.aiops.notification.balloon");
+
     private JPanel panel;
     private JButton ackButton;
     private JButton closeButton;
@@ -68,8 +73,11 @@ public class PanelButtonEditor extends DefaultCellEditor {
                 String res = myClient.ack(username,password,v.getString("id"));
                 JSONObject r = JSONObject.parseObject(res);
                 if(r.getInteger("code")==200){
-                    NotificationGroup notificationGroup = new NotificationGroup("notificationGroup", NotificationDisplayType.BALLOON, true);
-                    Notification notification = notificationGroup.createNotification("认领成功!", NotificationType.INFORMATION);
+                    Notification notification = balloon.createNotification("认领告警"+value.getString("id")+"成功!", NotificationType.INFORMATION);
+                    Notifications.Bus.notify(notification);
+                    refresh.doClick();
+                }else {
+                    Notification notification = balloon.createNotification("认领告警"+value.getString("id")+"失败!", NotificationType.WARNING);
                     Notifications.Bus.notify(notification);
                     refresh.doClick();
                 }
@@ -79,27 +87,19 @@ public class PanelButtonEditor extends DefaultCellEditor {
         // 为按钮添加事件。这里只能添加ActionListner事件，Mouse事件无效。
         this.closeButton.addActionListener(new ActionListener()
         {
-            AppSettingsState settings = AppSettingsState.getInstance();
-            String username = settings.username;
-            String password = settings.password;
-            HttpClient myClient = Forest.client(HttpClient.class);
 
             @Override
             public void actionPerformed(ActionEvent e)
             {
+                JSONObject v = JSONObject.parseObject(getCellEditorValue().toString());
+                CloseDialog dialog = new CloseDialog(v,refresh);
+                dialog.setTitle(v.getString("id"));
+                dialog.setValue(v);
+                dialog.setLocationByPlatform(true);
+                dialog.pack();
+                dialog.setVisible(true);
                 // 触发取消编辑的事件，不会调用tableModel的setValue方法。
                 PanelButtonEditor.this.fireEditingCanceled();
-
-                // 这里可以做其它操作。
-                JSONObject v = JSONObject.parseObject(getCellEditorValue().toString());
-                String res = myClient.close(username,password,v.getString("id"));
-                JSONObject r = JSONObject.parseObject(res);
-                if(r.getInteger("code")==200){
-                    NotificationGroup notificationGroup = new NotificationGroup("notificationGroup", NotificationDisplayType.BALLOON, true);
-                    Notification notification = notificationGroup.createNotification("关闭成功!", NotificationType.INFORMATION);
-                    Notifications.Bus.notify(notification);
-                    refresh.doClick();
-                }
             }
         });
 

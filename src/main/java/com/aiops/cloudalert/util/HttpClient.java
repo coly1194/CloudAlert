@@ -8,16 +8,18 @@ import com.dtflys.forest.extensions.BasicAuth;
 import java.util.Map;
 
 public interface HttpClient {
-//    url = "https://caweb.aiops.com/api/alert/rest/api/v1/alert/historymonth?appKey=97bb4c8347df4580974717a0e1c0f665&startTime=2023-2-1&endTime=2023-2-20"
-    @PostRequest(url = "https://caweb.aiops.com/api/alert/rest/api/v1/alert?size=${2}&current=${3}")
+    static final String url = "https://caweb.aiops.com/api/alert/rest/api/v1";
+//    static final String url = "http://newca.aiops.com/api/alert/rest/api/v1/";
+
+    @PostRequest(url = url+"/alert?size=${2}&current=${3}")
     @BasicAuth(username = "${0}",password = "${1}")
     String getAlerts(String username,String password,int size,int current,@JSONBody Map<String,Object> map);
 
-    @GetRequest(url = "https://caweb.aiops.com/api/alert/rest/api/v1/alert1/ack/${2}")
+    @GetRequest(url = url+"/alert1/ack/${2}")
     @BasicAuth(username = "${0}",password = "${1}")
     String ack(String username,String password,String id);
 
-    @GetRequest(url = "https://caweb.aiops.com/api/alert/rest/api/v1/alert1/resolve/${2}")
+    @GetRequest(url = url+"/alert1/resolve/${2}?comments=${3}&validStatus=&{4}")
     @BasicAuth(username = "${0}",password = "${1}")
-    String close(String username,String password,String id);
+    String close(String username,String password,String id,String comments,int validStatus);
 }
