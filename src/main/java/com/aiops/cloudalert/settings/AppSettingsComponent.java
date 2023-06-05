@@ -36,20 +36,19 @@ public class AppSettingsComponent {
     return userNameText;
   }
 
-  @NotNull
   public String getUserNameText() {
     return userNameText.getText();
   }
 
-  public void setUserNameText(@NotNull String newText) {
+  public void setUserNameText(String newText) {
     userNameText.setText(newText);
   }
-  @NotNull
+
   public String getPasswordText() {
     return passwordText.getText();
   }
 
-  public void setPasswordText(@NotNull String newText) {
+  public void setPasswordText(String newText) {
     passwordText.setText(newText);
   }
 

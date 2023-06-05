@@ -13,7 +13,7 @@ public interface HttpClient {
 
     @PostRequest(url = url+"/alert?size=${2}&current=${3}")
     @BasicAuth(username = "${0}",password = "${1}")
-    String getAlerts(String username,String password,int size,int current,@JSONBody Map<String,Object> map);
+    String getAlerts(String username,String password,int size,int current,@JSONBody Map<String,Object> map) throws Exception;
 
     @GetRequest(url = url+"/alert1/ack/${2}")
     @BasicAuth(username = "${0}",password = "${1}")
@@ -22,4 +22,8 @@ public interface HttpClient {
     @GetRequest(url = url+"/alert1/resolve/${2}?comments=${3}&validStatus=&{4}")
     @BasicAuth(username = "${0}",password = "${1}")
     String close(String username,String password,String id,String comments,int validStatus);
+
+    @GetRequest(url = url+"/apps")
+    @BasicAuth(username = "${0}",password = "${1}")
+    String apps(String username,String password);
 }

@@ -1,5 +1,7 @@
 package com.aiops.cloudalert.ui;
 
+import com.aiops.cloudalert.module.IDButtonEditor;
+import com.aiops.cloudalert.module.IDButtonRenderer;
 import com.aiops.cloudalert.module.PanelButtonEditor;
 import com.aiops.cloudalert.module.PanelButtonRenderer;
 import com.aiops.cloudalert.settings.AppSettingsState;
@@ -17,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import javax.swing.*;
 import javax.swing.table.*;
+import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,17 +40,31 @@ public class MainWindow {
     private String[] statusLabel = {"ALL", "ACTIVE", "ACK", "CLOSED"};
     private String[] label = {"我的告警", "所有告警", "未分配告警"};
 
+    private JSONArray apps;
+
     private JLabel pageLabel;
 
     public MainWindow(ToolWindow toolWindow) {
-        statusButton.setModel(new DefaultComboBoxModel(statusLabel));
-        statusButton.setSelectedItem("ALL");
-        labelButton.setModel(new DefaultComboBoxModel(label));
-        labelButton.setSelectedItem("我的告警");
-        addRows();
-        statusButton.addActionListener(e -> addRows());
-        labelButton.addActionListener(e -> addRows());
-        refresh.addActionListener(e -> addRows());
+        AppSettingsState settings = AppSettingsState.getInstance();
+        HttpClient myClient = Forest.client(HttpClient.class);
+        if(settings.username==null||settings.password==null){
+            Notification notification = balloon.createNotification("未配置邮箱和apiKEY,请前往Settins->Tools->Cloud Alert配置！", NotificationType.WARNING);
+            Notifications.Bus.notify(notification);
+        }else {
+            String res = myClient.apps(settings.username, settings.password);
+            JSONObject appRes = JSON.parseObject(res);
+            if (appRes.getInteger("code") == 200) {
+                apps = appRes.getJSONArray("data");
+            }
+            statusButton.setModel(new DefaultComboBoxModel(statusLabel));
+            statusButton.setSelectedItem("ALL");
+            labelButton.setModel(new DefaultComboBoxModel(label));
+            labelButton.setSelectedItem("我的告警");
+            addRows();
+            statusButton.addActionListener(e -> addRows());
+            labelButton.addActionListener(e -> addRows());
+            refresh.addActionListener(e -> addRows());
+        }
     }
 
     public void addRows() {
@@ -72,7 +89,13 @@ public class MainWindow {
                         params.put("who", "un");
                     }
                 }
-                String result = myClient.getAlerts(username, password, 20, 1, params);
+                String result="";
+                try {
+                    result = myClient.getAlerts(username, password, 20, 1, params);
+                }catch (SocketTimeoutException e){
+                    Notification notification = balloon.createNotification("获取告警列表超时", NotificationType.ERROR);
+                    Notifications.Bus.notify(notification);
+                }
                 JSONObject jsonObject = JSON.parseObject(result);
                 if(jsonObject.getInteger("code")==200) {
                     String pageText = jsonObject.getString("totalCount") + "条告警";
@@ -81,12 +104,15 @@ public class MainWindow {
                     // 添加
                     for (int i = 0; i < alerts.size(); i++) {
                         JSONObject a = alerts.getJSONObject(i);
-                        defaultTableModel.addRow(new Object[]{a.getString("id"), a.getString("alarmName"), a.getString("alarmContent"), getDate(a.getLong("createTime")), getPriorityStr(a.getString("priority")), a.getString("status"), a});
+                        defaultTableModel.addRow(new Object[]{a, a.getString("alarmName"), a.getString("alarmContent"), getDate(a.getLong("createTime")), getPriorityStr(a.getString("priority")), a.getString("status"), a});
                     }
                     table.setModel(defaultTableModel);
-                    table.getColumnModel().getColumn(6).setCellEditor(new PanelButtonEditor(refresh));
+                    table.getColumnModel().getColumn(0).setCellEditor(new IDButtonEditor(refresh,apps));
+                    table.getColumnModel().getColumn(0).setCellRenderer(new IDButtonRenderer());
+                    table.getColumnModel().getColumn(6).setCellEditor(new PanelButtonEditor(refresh,apps));
                     table.getColumnModel().getColumn(6).setCellRenderer(new PanelButtonRenderer());
                 }
+
             } catch (ForestNetworkException e1){
                 Notification notification = balloon.createNotification("apiKey检查不通过,请前往Settins->Tools->Cloud Alert配置！", NotificationType.WARNING);
                 Notifications.Bus.notify(notification);

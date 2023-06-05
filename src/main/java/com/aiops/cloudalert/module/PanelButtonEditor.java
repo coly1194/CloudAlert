@@ -3,6 +3,7 @@ package com.aiops.cloudalert.module;
 import com.aiops.cloudalert.settings.AppSettingsState;
 import com.aiops.cloudalert.ui.CloseDialog;
 import com.aiops.cloudalert.util.HttpClient;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dtflys.forest.Forest;
 import com.intellij.notification.*;
@@ -26,12 +27,14 @@ public class PanelButtonEditor extends DefaultCellEditor {
     private JSONObject value;
 
     private JButton refresh;
+    private JSONArray apps;
 
-    public PanelButtonEditor(JButton refresh)
+    public PanelButtonEditor(JButton refresh, JSONArray apps)
     {
         // DefautlCellEditor有此构造器，需要传入一个，但这个不会使用到，直接new一个即可。
         super(new JTextField());
         this.refresh = refresh;
+        this.apps=apps;
         // 设置点击几次激活编辑。
         this.setClickCountToStart(1);
 
@@ -92,7 +95,7 @@ public class PanelButtonEditor extends DefaultCellEditor {
             public void actionPerformed(ActionEvent e)
             {
                 JSONObject v = JSONObject.parseObject(getCellEditorValue().toString());
-                CloseDialog dialog = new CloseDialog(v,refresh);
+                CloseDialog dialog = new CloseDialog(v,refresh,true,apps);
                 dialog.setTitle(v.getString("id"));
                 dialog.setValue(v);
                 dialog.setLocationByPlatform(true);

@@ -24,6 +24,7 @@
               <autoResizeMode value="1"/>
               <cellSelectionEnabled value="false"/>
               <dragEnabled value="false"/>
+              <enabled value="true"/>
               <focusTraversalPolicyProvider value="false"/>
               <gridColor color="-11579054"/>
               <inheritsPopupMenu value="false"/>
@@ -34,6 +35,7 @@
               <selectionBackground color="-11579054"/>
               <selectionForeground color="-4473925"/>
               <showVerticalLines value="true"/>
+              <updateSelectionOnSort value="false"/>
             </properties>
           </component>
         </children>

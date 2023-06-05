@@ -2,9 +2,11 @@ package com.aiops.cloudalert.ui;
 
 import com.aiops.cloudalert.settings.AppSettingsState;
 import com.aiops.cloudalert.util.HttpClient;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dtflys.forest.Forest;
 import com.intellij.notification.*;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -28,20 +30,34 @@ public class CloseDialog extends JDialog {
     private JTextField duixiang;
     private JTextField app;
     private JTextField shijian;
+    private JLabel solutionLabel;
 
     private int validStatus;
 
     ButtonGroup group=new ButtonGroup();
 
 
-    public CloseDialog(JSONObject value,JButton refresh) {
+    public CloseDialog(JSONObject value, JButton refresh, boolean action, JSONArray apps) {
         this.value = value;
         setContentPane(contentPane);
         textPane.setText(value.getString("alarmContent"));
         biaoti.setText(value.getString("alarmName"));
         duixiang.setText(value.getString("entityName"));
-        app.setText(value.getString("appDescription"));
+        for(int i =0;i<apps.size();i++){
+            if(apps.getJSONObject(i).getString("appId").equals(value.getString("app"))){
+                app.setText(apps.getJSONObject(i).getString("description"));
+                break;
+            }
+        }
         shijian.setText(value.getString("creationTime"));
+        if(!action){
+            wuxiaoRadioButton.setVisible(false);
+            wubaoRadioButton.setVisible(false);
+            youxiaoRadioButton.setVisible(false);
+            buttonOK.setVisible(false);
+            solutionTextField.setVisible(false);
+            solutionLabel.setVisible(false);
+        }
         group.add(wuxiaoRadioButton);
         group.add(wubaoRadioButton);
         group.add(youxiaoRadioButton);
@@ -107,6 +123,11 @@ public class CloseDialog extends JDialog {
         HttpClient myClient = Forest.client(HttpClient.class);
         // 在此处添加您的代码
         String comments = solutionTextField.getText();
+        if(StringUtils.isBlank(comments)){
+            comments="调用rest api关闭";
+        }else {
+            comments="调用rest api关闭:"+comments;
+        }
         String res = myClient.close(username,password,value.getString("id"),comments,validStatus);
         JSONObject r = JSONObject.parseObject(res);
         if(r.getInteger("code")==200){

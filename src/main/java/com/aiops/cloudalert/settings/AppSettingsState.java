@@ -25,7 +25,8 @@ public class AppSettingsState implements PersistentStateComponent<AppSettingsSta
   public String password;
 
   public static AppSettingsState getInstance() {
-    return ApplicationManager.getApplication().getService(AppSettingsState.class);
+    AppSettingsState state =  ApplicationManager.getApplication().getService(AppSettingsState.class);
+    return state;
   }
 
   @Nullable

@@ -3,6 +3,7 @@
 package com.aiops.cloudalert.settings;
 
 import com.intellij.openapi.options.Configurable;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +40,8 @@ public class AppSettingsConfigurable implements Configurable {
   @Override
   public boolean isModified() {
     AppSettingsState settings = AppSettingsState.getInstance();
-    boolean modified = !mySettingsComponent.getUserNameText().equals(settings.username);
-    modified |= mySettingsComponent.getPasswordText() != settings.password;
+    boolean modified = (!mySettingsComponent.getUserNameText().equals(settings.username)&&!mySettingsComponent.getUserNameText().isBlank());
+    modified |= ((mySettingsComponent.getPasswordText() != settings.password)&&!mySettingsComponent.getPasswordText().isBlank());
     return modified;
   }
 
